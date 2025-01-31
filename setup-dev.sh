@@ -15,8 +15,8 @@ source "$HOME/.sdkman/bin/sdkman-init.sh"
 
 # Instala Java via SDKMAN (versão mais recente do Temurin 21)
 echo "☕ Instalando Java via SDKMAN..."
-sdk install java 21-temurin
-sdk default java 21-temurin
+sdk install java 21.0.6-zulu
+sdk default java 21.0.6-zulu
 
 # Instala Node.js e NVM
 echo "🌍 Instalando Node.js e NVM..."
@@ -52,11 +52,13 @@ sudo apt install -y ./chrome.deb
 rm chrome.deb
 
 # Instala Eclipse
-echo "☀️ Instalando Eclipse..."
-wget -O eclipse.tar.gz https://ftp.fau.de/eclipse/technology/epp/downloads/release/latest/eclipse-jee-latest-linux-gtk-x86_64.tar.gz
-sudo tar -xzf eclipse.tar.gz -C /opt/
-sudo ln -s /opt/eclipse/eclipse /usr/local/bin/eclipse
-rm eclipse.tar.gz
+echo "☀️ Baixando e instalando Eclipse..."
+wget -O eclipse-installer.tar.gz https://ftp.osuosl.org/pub/eclipse/oomph/epp/2024-12/R/eclipse-inst-jre-linux64.tar.gz
+tar -xzf eclipse-installer.tar.gz
+cd eclipse-installer
+./eclipse-inst
+cd ..
+rm -rf eclipse-installer eclipse-installer.tar.gz
 
 # Limpeza final
 echo "🧹 Limpando pacotes desnecessários..."
