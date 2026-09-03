@@ -14,6 +14,11 @@ JAVA_EXTRA="21.0.9-zulu"
 NODE_VERSAO="--lts"          # ou uma versão fixa, ex.: "22.11.0"
 # ---------------------------------------------------------------------------
 
+[ "$(uname -s)" = "Darwin" ] || {
+  echo "Este script é para macOS. No Linux, use ./setup-dev-linux.sh" >&2
+  exit 1
+}
+
 log "Command Line Tools"
 xcode-select -p >/dev/null 2>&1 && ok "já instalado" || xcode-select --install 2>/dev/null
 

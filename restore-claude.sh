@@ -17,6 +17,11 @@ if [ -z "$BACKUP" ] || [ ! -d "$BACKUP" ]; then
   echo "uso: $0 /caminho/do/backup-ambiente-AAAAMMDD" >&2
   exit 1
 fi
+if [ ! -f "$BACKUP/.setup-dev-backup" ]; then
+  echo "'$BACKUP' não parece um backup gerado por backup-claude.sh." >&2
+  echo "Falta o marcador .setup-dev-backup — confira o caminho." >&2
+  exit 1
+fi
 
 log "Restaurando a partir de $BACKUP"
 mkdir -p "$HOME/.claude" "$HOME/.config/ccstatusline"

@@ -16,6 +16,15 @@ JAVA_EXTRA="21.0.9-zulu"
 NODE_VERSAO="--lts"          # ou uma versão fixa, ex.: "22.11.0"
 # ---------------------------------------------------------------------------
 
+[ "$(uname -s)" = "Linux" ] || {
+  echo "Este script é para Linux. No macOS, use ./setup-dev-macos.sh" >&2
+  exit 1
+}
+have apt-get || {
+  echo "Este script usa apt-get e cobre distribuições baseadas em Debian." >&2
+  exit 1
+}
+
 log "Atualizando índices do apt"
 sudo apt-get update -qq
 
