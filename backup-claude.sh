@@ -61,12 +61,33 @@ npm ls -g --depth=0 > "$OUT/inventario/npm-globais.txt"   2>/dev/null
 ls "$HOME/.sdkman/candidates/java" > "$OUT/inventario/java-sdkman.txt" 2>/dev/null
 ok "inventário do que estava instalado"
 
-# Rede de segurança: nenhum arquivo do pacote pode conter credencial conhecida.
-if grep -rlEi "(api[_-]?key|password|secret|token)\"?\s*[:=]\s*\"[A-Za-z0-9_.-]{16,}" "$OUT" >/dev/null 2>&1; then
-  warn "possível segredo detectado no pacote — revise antes de copiar:"
-  grep -rlEi "(api[_-]?key|password|secret|token)\"?\s*[:=]\s*\"[A-Za-z0-9_.-]{16,}" "$OUT" | sed 's/^/    /'
+# Rede de segurança: varre o pacote atrás de credencial antes de liberar a cópia.
+#
+# Duas passadas, porque segredo aparece em dois formatos diferentes:
+#   1. configuração  ->  "password": "abc123..."
+#   2. prosa         ->  a senha do Mongo (`abc123...`) precisa de rotação
+#
+# A segunda existe porque anotações de análise costumam citar o valor no meio
+# do texto, sem dois-pontos nem aspas — e é justamente o caso que passa batido.
+log "Procurando credenciais no pacote"
+SUSPEITOS=$(mktemp)
+
+grep -rlEi "(api[_-]?key|password|passwd|secret|token|authorization)\"?[[:space:]]*[:=][[:space:]]*[\"'][A-Za-z0-9_.\-]{12,}" \
+  "$OUT" 2>/dev/null >> "$SUSPEITOS"
+
+# Linha que menciona credencial E carrega um valor entre aspas ou crases.
+# O limiar é 12 e não 16: senha real costuma ser mais curta que token de API,
+# e foi exatamente isso que deixou um valor de 15 caracteres passar antes.
+grep -rlEi "(api[_-]?key|password|passwd|secret|token|credencial|senha).{0,60}[\"'\`][A-Za-z0-9_.\-]{12,}[\"'\`]" \
+  "$OUT" 2>/dev/null >> "$SUSPEITOS"
+
+if [ -s "$SUSPEITOS" ]; then
+  warn "possível credencial nestes arquivos — revise antes de copiar:"
+  sort -u "$SUSPEITOS" | sed "s|$OUT|  .|"
+  warn "edite o arquivo e substitua o valor por <REDIGIDO> antes de levar o pacote"
 else
-  ok "nenhum segredo detectado no pacote"
+  ok "nenhuma credencial detectada"
 fi
+rm -f "$SUSPEITOS"
 
 log "Backup pronto: $OUT  ($(du -sh "$OUT" | cut -f1))"
