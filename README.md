@@ -74,9 +74,9 @@ Os scripts copiam esse arquivo para `~/.config/ccstatusline/settings.json` e reg
 - o layout do ccstatusline e o `.zshrc`
 - inventário do que estava instalado (brew, npm global, versões de Java)
 
-**Nenhum segredo entra no pacote.** As credenciais dos MCP servers viram placeholders em `mcp-servers.template.json`, o arquivo de autenticação do Claude fica de fora, e o script faz uma varredura final procurando padrões de credencial antes de terminar.
+**Nenhum segredo entra no pacote.** O arquivo de autenticação do Claude fica de fora e o script faz uma varredura final procurando padrões de credencial — em formato de configuração e também no meio de texto — antes de terminar.
 
-Como os MCP servers precisam de credencial, eles **não** são restaurados automaticamente — o template serve de referência para você registrá-los com `claude mcp add`.
+**MCP servers ficam de fora por decisão de projeto.** Dependem de credencial e de infraestrutura específicas de cada máquina e de cada trabalho, então são registrados à mão com `claude mcp add` quando fizerem falta.
 
 ---
 

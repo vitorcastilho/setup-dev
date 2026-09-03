@@ -5,8 +5,9 @@
 #
 #   ./restore-claude.sh ~/dev/backup-ambiente-AAAAMMDD
 #
-# O backup NÃO contém segredos: as credenciais dos MCP servers vêm como
-# placeholders em mcp-servers.template.json e precisam ser preenchidas à mão.
+# O backup não contém segredos nem MCP servers — estes últimos são registrados
+# à mão com "claude mcp add", já que dependem de credencial e de infraestrutura
+# específicas de cada máquina.
 
 set -uo pipefail
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib/common.sh"
@@ -34,7 +35,6 @@ restore "$BACKUP/claude/CLAUDE.md"                "$HOME/.claude/CLAUDE.md"     
 restore "$BACKUP/claude/skills"                   "$HOME/.claude/skills"                   "skills"
 restore "$BACKUP/claude/commands"                 "$HOME/.claude/commands"                 "slash commands"
 restore "$BACKUP/claude/scripts"                  "$HOME/.claude/scripts"                  "scripts"
-restore "$BACKUP/claude/mcp-servers"              "$HOME/.claude/mcp-servers"              "binários de MCP"
 restore "$BACKUP/config/ccstatusline-settings.json" "$HOME/.config/ccstatusline/settings.json" "layout da statusline"
 
 # As memórias ficam por projeto, em ~/.claude/projects/<slug>/memory.
@@ -67,20 +67,6 @@ with io.open(dst, 'w', encoding='utf-8') as f:
     json.dump(merged, f, indent=2, ensure_ascii=False); f.write('\n')
 PY
   ok "settings.json mesclado"
-fi
-
-if [ -f "$BACKUP/claude/mcp-servers.template.json" ]; then
-  cat <<EOF
-
-  Os MCP servers NÃO são restaurados automaticamente — o template tem
-  placeholders no lugar das credenciais. Abra o arquivo, preencha o que
-  ainda fizer sentido e registre cada servidor com:
-
-      claude mcp add <nome> ...
-
-  Template: $BACKUP/claude/mcp-servers.template.json
-
-EOF
 fi
 
 ok "Restauração concluída. Abra o Claude Code para conferir a statusline."
