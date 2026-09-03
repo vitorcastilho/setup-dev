@@ -1,70 +1,72 @@
-#!/bin/bash
+#!/usr/bin/env bash
+#
+# Provisiona um macOS novo com o ambiente de desenvolvimento completo.
+# Idempotente: pode rodar mais de uma vez sem quebrar nada.
+#
+#   ./setup-dev-macos.sh
 
-echo "🍎 Iniciando configuração do ambiente macOS..."
+set -uo pipefail
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib/common.sh"
 
-# Instala Xcode Command Line Tools
-echo "🔧 Verificando Command Line Tools..."
-xcode-select --install 2>/dev/null
+log "Command Line Tools"
+xcode-select -p >/dev/null 2>&1 && ok "já instalado" || xcode-select --install 2>/dev/null
 
-# Instala Homebrew se não existir
-if ! command -v brew &> /dev/null; then
-    echo "🍺 Instalando Homebrew..."
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    eval "$(/opt/homebrew/bin/brew shellenv)"   # Apple Silicon
-    eval "$(/usr/local/bin/brew shellenv)"      # Intel
+log "Homebrew"
+if have brew; then
+  ok "já instalado"
 else
-    echo "🍺 Homebrew já instalado."
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  [ -x /opt/homebrew/bin/brew ] && eval "$(/opt/homebrew/bin/brew shellenv)"   # Apple Silicon
+  [ -x /usr/local/bin/brew ]    && eval "$(/usr/local/bin/brew shellenv)"      # Intel
 fi
+brew update
 
-# Atualiza Homebrew
-echo "🔄 Atualizando pacotes..."
-brew update && brew upgrade
+log "Pacotes essenciais"
+brew install curl wget git unzip gnupg jq ca-certificates
 
-# Pacotes básicos
-echo "🛠 Instalando pacotes essenciais..."
-brew install curl wget git unzip gnupg ca-certificates
+log "Warp — terminal usado no dia a dia"
+brew list --cask warp >/dev/null 2>&1 && ok "já instalado" || brew install --cask warp
 
-# SDKMAN
-echo "☁️ Instalando SDKMAN..."
-curl -s "https://get.sdkman.io" | bash
-source "$HOME/.sdkman/bin/sdkman-init.sh"
+log "Fonte com glifos powerline"
+# Sem uma Nerd Font, os separadores da statusline viram quadrados.
+brew install --cask font-meslo-lg-nerd-font 2>/dev/null || warn "instale manualmente uma Nerd Font"
 
-# Java 17 via SDKMAN
-echo "☕ Instalando Java 17 (Zulu)..."
-sdk install java 17.0.13-zulu
-sdk default java 17.0.13-zulu
+log "SDKMAN e Java"
+if [ ! -d "$HOME/.sdkman" ]; then curl -s "https://get.sdkman.io" | bash; fi
+set +u; source "$HOME/.sdkman/bin/sdkman-init.sh"; set -u
+sdk install java 17.0.13-zulu </dev/null || true
+sdk install java 21.0.9-zulu  </dev/null || true
+sdk default java 17.0.13-zulu || true
 
-# NVM + Node + Yarn
-echo "🌍 Instalando NVM e Node..."
+log "Node via NVM"
 brew install nvm
-export NVM_DIR="$HOME/.nvm"
-mkdir -p $NVM_DIR
-source "$(brew --prefix nvm)/nvm.sh"
-nvm install node
+export NVM_DIR="$HOME/.nvm"; mkdir -p "$NVM_DIR"
+set +u; source "$(brew --prefix nvm)/nvm.sh"; set -u
+nvm install --lts
 npm install -g yarn
 
-# Docker Desktop
-echo "🐳 Instalando Docker Desktop..."
-brew install --cask docker
+log "Docker, bancos e IDEs"
+for c in docker dbeaver-community visual-studio-code intellij-idea-ce postman mongodb-compass; do
+  brew list --cask "$c" >/dev/null 2>&1 && ok "$c já instalado" || brew install --cask "$c"
+done
 
-# DBeaver
-echo "🐘 Instalando DBeaver..."
-brew install --cask dbeaver-community
+install_claude_code
+configure_ccstatusline
 
-# Ferramentas de desenvolvimento
-echo "💻 Instalando VS Code..."
-brew install --cask visual-studio-code
-
-echo "💻 Instalando Eclipse Installer..."
-brew install --cask eclipse-installer
-
-echo "💡 Instalando IntelliJ IDEA Community..."
-brew install --cask intellij-idea-ce
-
-echo "📮 Instalando Postman..."
-brew install --cask postman
-
-echo "🧹 Limpando caches..."
+log "Limpando caches"
 brew cleanup
 
-echo "✅ Ambiente configurado! Reinicie o sistema para finalizar."
+cat <<'EOF'
+
+Pronto. Passos que dependem de você:
+
+  1. No Warp: Settings → Appearance → Text → escolha "MesloLGS Nerd Font".
+     Sem isso, os separadores da statusline aparecem como quadrados.
+
+  2. Autentique o Claude Code:  claude
+  3. Autentique o GitHub CLI:   gh auth login
+
+  4. Restaure suas configurações pessoais a partir do backup:
+     ./restore-claude.sh /caminho/do/backup-ambiente-AAAAMMDD
+
+EOF
