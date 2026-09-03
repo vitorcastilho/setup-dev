@@ -15,6 +15,11 @@ OUT="${1:-$HOME/dev/backup-ambiente-$(date +%Y%m%d)}"
 log "Gerando backup em $OUT"
 rm -rf "$OUT"; mkdir -p "$OUT"/{claude,config,shell,inventario}
 
+# Marcador: o restore recusa pastas que não tenham sido geradas por aqui,
+# para não sair sobrescrevendo configuração a partir de um diretório errado.
+printf 'setup-dev backup\ngerado em: %s\nsistema: %s\n' \
+  "$(date '+%Y-%m-%d %H:%M:%S')" "$(uname -s)" > "$OUT/.setup-dev-backup"
+
 cp "$HOME/.claude/settings.json" "$OUT/claude/" 2>/dev/null && ok "settings.json"
 cp "$HOME/.claude/CLAUDE.md"     "$OUT/claude/" 2>/dev/null && ok "CLAUDE.md"
 for d in skills commands scripts; do
@@ -34,8 +39,10 @@ ok "$n arquivos de memória"
 cp "$HOME/.config/ccstatusline/settings.json" "$OUT/config/ccstatusline-settings.json" 2>/dev/null && ok "ccstatusline"
 cp "$HOME/.zshrc" "$OUT/shell/.zshrc" 2>/dev/null && ok ".zshrc"
 
-brew list --formula > "$OUT/inventario/brew-formulas.txt" 2>/dev/null
-brew list --cask    > "$OUT/inventario/brew-casks.txt"    2>/dev/null
+if have brew; then
+  brew list --formula > "$OUT/inventario/brew-formulas.txt" 2>/dev/null
+  brew list --cask    > "$OUT/inventario/brew-casks.txt"    2>/dev/null
+fi
 npm ls -g --depth=0 > "$OUT/inventario/npm-globais.txt"   2>/dev/null
 ls "$HOME/.sdkman/candidates/java" > "$OUT/inventario/java-sdkman.txt" 2>/dev/null
 ok "inventário do que estava instalado"

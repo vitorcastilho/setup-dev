@@ -8,6 +8,17 @@
 set -uo pipefail
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib/common.sh"
 
+# --- versões, num único lugar ---------------------------------------------
+JAVA_PADRAO="17.0.13-zulu"
+JAVA_EXTRA="21.0.9-zulu"
+NODE_VERSAO="--lts"          # ou uma versão fixa, ex.: "22.11.0"
+# ---------------------------------------------------------------------------
+
+[ "$(uname -s)" = "Darwin" ] || {
+  echo "Este script é para macOS. No Linux, use ./setup-dev-linux.sh" >&2
+  exit 1
+}
+
 log "Command Line Tools"
 xcode-select -p >/dev/null 2>&1 && ok "já instalado" || xcode-select --install 2>/dev/null
 
@@ -34,15 +45,15 @@ brew install --cask font-meslo-lg-nerd-font 2>/dev/null || warn "instale manualm
 log "SDKMAN e Java"
 if [ ! -d "$HOME/.sdkman" ]; then curl -s "https://get.sdkman.io" | bash; fi
 set +u; source "$HOME/.sdkman/bin/sdkman-init.sh"; set -u
-sdk install java 17.0.13-zulu </dev/null || true
-sdk install java 21.0.9-zulu  </dev/null || true
-sdk default java 17.0.13-zulu || true
+sdk install java "$JAVA_PADRAO" </dev/null || true
+sdk install java "$JAVA_EXTRA"  </dev/null || true
+sdk default java "$JAVA_PADRAO" || true
 
 log "Node via NVM"
 brew install nvm
 export NVM_DIR="$HOME/.nvm"; mkdir -p "$NVM_DIR"
 set +u; source "$(brew --prefix nvm)/nvm.sh"; set -u
-nvm install --lts
+nvm install "$NODE_VERSAO"
 npm install -g yarn
 
 log "Docker, bancos e IDEs"

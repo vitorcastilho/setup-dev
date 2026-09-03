@@ -10,6 +10,21 @@
 set -uo pipefail
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib/common.sh"
 
+# --- versões, num único lugar ---------------------------------------------
+JAVA_PADRAO="17.0.13-zulu"
+JAVA_EXTRA="21.0.9-zulu"
+NODE_VERSAO="--lts"          # ou uma versão fixa, ex.: "22.11.0"
+# ---------------------------------------------------------------------------
+
+[ "$(uname -s)" = "Linux" ] || {
+  echo "Este script é para Linux. No macOS, use ./setup-dev-macos.sh" >&2
+  exit 1
+}
+have apt-get || {
+  echo "Este script usa apt-get e cobre distribuições baseadas em Debian." >&2
+  exit 1
+}
+
 log "Atualizando índices do apt"
 sudo apt-get update -qq
 
@@ -44,9 +59,9 @@ fi
 log "SDKMAN e Java"
 if [ ! -d "$HOME/.sdkman" ]; then curl -s "https://get.sdkman.io" | bash; fi
 set +u; source "$HOME/.sdkman/bin/sdkman-init.sh"; set -u
-sdk install java 17.0.13-zulu </dev/null || true
-sdk install java 21.0.9-zulu  </dev/null || true
-sdk default java 17.0.13-zulu || true
+sdk install java "$JAVA_PADRAO" </dev/null || true
+sdk install java "$JAVA_EXTRA"  </dev/null || true
+sdk default java "$JAVA_PADRAO" || true
 
 log "Node via NVM"
 if [ ! -d "$HOME/.nvm" ]; then
@@ -54,7 +69,7 @@ if [ ! -d "$HOME/.nvm" ]; then
 fi
 export NVM_DIR="$HOME/.nvm"
 set +u; source "$NVM_DIR/nvm.sh"; set -u
-nvm install --lts
+nvm install "$NODE_VERSAO"
 npm install -g yarn
 
 log "Docker Engine"
