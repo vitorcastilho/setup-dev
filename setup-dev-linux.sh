@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 #
-# Provisiona um Linux (Debian/Ubuntu) novo com o ambiente de desenvolvimento.
-# Idempotente: pode rodar mais de uma vez sem quebrar nada.
+# Provisiona um Linux novo com o ambiente de desenvolvimento.
 #
-#   ./setup-dev.sh
+# Testado em Ubuntu; funciona em qualquer distribuição baseada em Debian,
+# já que usa apt-get. Idempotente: pode rodar mais de uma vez sem quebrar nada.
+#
+#   ./setup-dev-linux.sh
 
 set -uo pipefail
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib/common.sh"

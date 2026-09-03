@@ -13,7 +13,7 @@ git clone https://github.com/vitorcastilho/setup-dev
 cd setup-dev
 
 ./setup-dev-macos.sh     # macOS
-./setup-dev.sh           # Linux (Debian/Ubuntu)
+./setup-dev-linux.sh           # Linux (Debian/Ubuntu)
 ```
 
 Depois, se você tiver um backup das configurações:
@@ -85,7 +85,7 @@ Como os MCP servers precisam de credencial, eles **não** são restaurados autom
 ```
 setup-dev/
 ├── setup-dev-macos.sh          provisionamento do macOS
-├── setup-dev.sh                provisionamento do Linux
+├── setup-dev-linux.sh                provisionamento do Linux
 ├── backup-claude.sh            gera o pacote de configurações
 ├── restore-claude.sh           restaura o pacote numa máquina nova
 ├── lib/common.sh               funções compartilhadas
